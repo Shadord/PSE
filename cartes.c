@@ -27,6 +27,12 @@ typedef struct
 	Carte **liste_cartes;
 	} Main;
 
+typedef struct 
+	{
+	int nb_points;
+	Main *Main;
+	} Joueur;
+
 /*Fonctions*/
 
 /*empile une carte C dans un paquet de cartes P*/
@@ -170,7 +176,10 @@ void afficher_main(Main *M)
 	for (int i=0; i<M->size; i++)
 		{
 		Carte *C = M->liste_cartes[i];
-		printf("famille %d n°%d\n", C->famille, C->value);
+		if (C!=NULL)
+			{
+			printf("%d : famille %d n°%d\n", i, C->famille, C->value);
+			}
 		}
 	printf("\n\n");
 	}
@@ -256,9 +265,97 @@ void comparer_cartes(Paquet *Main1, Paquet *Main2, int *points1, int *points2)
 		}
 	
 	}
-/*Fonction qui décode le message avec les %"
+/*Fonction qui décode le message avec les %"*/
 
-/*Fonction qui compare les cartes*/
+
+void retirer_carte_main(Carte *C, Main *M)
+	{
+	int i = 0;
+	int trouve = 0;
+	while(M->liste_cartes[i] == NULL){
+		i++;
+	}
+	Carte *courant = M->liste_cartes[i];
+	while (trouve == 0 && i<52)
+		{
+		if (courant->value == C->value)
+			{
+			trouve = 1;
+			break;
+			}
+		else 
+			{
+			i++;
+			while(M->liste_cartes[i] == NULL){
+				i++;
+			}
+			
+			courant = M->liste_cartes[i];
+			}
+		}
+	if (trouve == 1) // La carte que l'on souhaite retirer se trouve bien dans la main
+		{
+		M->liste_cartes[i]=NULL; // On retire C de la main
+		}
+	if (i>=52)
+		{
+		printf("La carte que vous souhaitez retirer ne se trouve pas dans la main.\n");
+		}
+	}
+
+void ajouter_carte_main(Carte *C, Main *M)
+	{
+	int i = 0;
+	while (i<52)
+		{
+		if (M->liste_cartes[i]==NULL)
+			{
+			M->liste_cartes[i] = C;
+			break;
+			}
+		else
+			{
+			i++;
+			}
+		}
+	if (i>=52) // Ce cas est théoriquement impossible
+		{
+		printf("Il n'y a plus de place pour ajouter une carte dans la main.\n");
+		}
+	}
+
+void comparer_cartes(int indice_carte_1, int indice_carte_2, Joueur *J1, Joueur *J2)
+	
+	{
+	Carte *C1 = J1->Main->liste_cartes[indice_carte_1];
+	Carte *C2 = J2->Main->liste_cartes[indice_carte_2];
+	retirer_carte_main(C1, J1->Main); // On retire les deux cartes choisies des paquets respectifs des joueurs
+	retirer_carte_main(C2, J2->Main);
+	if (C1->value==C2->value) // Les deux cartes jouées ont même valeur
+		{
+		printf("Les cartes ont même valeur.\n");
+		ajouter_carte_main(C1, J1->Main); // On les remet chacune dans les paquets des joueurs
+		ajouter_carte_main(C2, J2->Main);
+		}
+	else if (C1->value>C2->value) // J1 gagne
+		{
+		printf("Joueur 1 gagne.\n");
+		J1->nb_points++; // J1 gagne 1 point
+		ajouter_carte_main(C1, J1->Main); // J1 récupère sa carte
+		ajouter_carte_main(C2, J1->Main); // J1 récupère la carte de J2 également
+		}
+	else // J2 gagne
+		{
+		printf("Joueur 2 gagne.\n");
+		J2->nb_points++; // J2 gagne 1 point
+		ajouter_carte_main(C1, J2->Main); // J2 récupère la carte de J1
+		ajouter_carte_main(C2, J2->Main); // J2 récupère sa carte
+		}
+	}
+
+/*Ajouter les cartes à la fin du paquet
+
+
 
 
 /*Main*/ 
@@ -270,8 +367,8 @@ int main(void)
 	Paquet nouvPaquet_Cartes = {0, NULL, NULL};
 	Main Main1 = {0, NULL};
 	Main Main2 = {0, NULL};
-	int nb_points_J1=0;
-	int nb_points_J2=0;
+	Joueur Joueur1 = {0, &Main1};
+	Joueur Joueur2 = {0, &Main2};
 
 	paquet_bien_range(&Paquet_Cartes);
 	printf("Affichage paquet de cartes bien rangé : \n");
@@ -285,8 +382,16 @@ int main(void)
 	couper_paquet_en_deux(&Paquet_Cartes, &Main1, &Main2);
 	printf("Main 1 :\n");
 	afficher_main(&Main1);
-	printf("Main2 2:\n");
+	printf("Main 2 :\n");
 	afficher_main(&Main2);
+	for(int i = 0; i<4; i++){
+		comparer_cartes(i, i, &Joueur1, &Joueur2);
+		printf("Main 1 %d:\n", Joueur1.nb_points);
+		afficher_main(&Main1);
+		printf("Main 2 %d:\n", Joueur2.nb_points);
+		afficher_main(&Main2);
+	}
+	
 
 	return 0;
 	}
