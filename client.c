@@ -3,11 +3,9 @@
 
 void* internal_serveur(void* datas);
 
-struct {
-  int inside; // Un message est arrivé
-  int outside; // Un message doit être envoyé
-  char inside_c[50]; // Le message qui est arrivé est stocké ici
-  char outside_c[50]; // Le message qui doit être envoyé est stocké la
+typedef struct {
+  sem_t ecriture;
+  sem_t lecture;
   struct sockaddr_in int_adresse;
 } int_S;
 
@@ -32,6 +30,8 @@ int main(int argc, char const *argv[]) {
   running = 1;
   // Création d'un thread serveur qui attendrai 1 connection : celle du client du serveur
   int_S S;
+  sem_init(&S.ecriture, 0, 0);
+  sem_init(&S.lecture, 0, 0);
   struct sockaddr_in adresse;
   adresse.sin_addr.s_addr = INADDR_ANY;
   adresse.sin_family = AF_INET;
@@ -42,11 +42,33 @@ int main(int argc, char const *argv[]) {
     printf("Erreur dans la création du worker\n");
     erreur_IO ("pthread_create");
   }else{
-    printf("Création du worker %d\n", ret);
+    printf("Création du Serveur Interne %d\n", ret);
   }
 
-
   freeResolv();
+  printf("Client : Wait For Line Sent\n");
+  sem_wait(&S.ecriture); // On bloque, des que le serveur interne sera pret on envois la commande de connection
+
+  char co_line[100];
+  strcat(co_line, "%S");
+  printf("Client : Wait For Line Sent\n");
+  strcat(co_line, stringIP(ntohl(S.int_adresse.sin_addr.s_addr)));
+  printf("Client : Wait For Line Sent\n");
+  strcat(co_line, "%");
+  printf("Client : Wait For Line Sent\n");
+  // Convertir le POrt en str sinon marche pas
+  int someInt = ntohs(S.int_adresse.sin_port);
+  char str[7];
+  sprintf(str, "%d", someInt);
+  strcat(co_line, str);
+  printf("Client : Wait For Line Sent\n");
+  printf("%s",co_line);
+  if(ecrireLigne(sock, co_line)<0) {
+    perror("ecrireLigne");
+    exit(EXIT_FAILURE);
+  }
+
+  printf("Client : Connection Line Sent\n");
 
   while(running) {
     char buffer[160];
@@ -70,7 +92,8 @@ int main(int argc, char const *argv[]) {
 }
 
 void* internal_serveur(void* datas){
-  int_S* donnees = (int_S*) datas; // Cast en un int_S*
+  int int_serveur_run = 0;
+  int_S* S = (int_S*) datas; // Cast en un int_S*
   int sock = socket(AF_INET, SOCK_STREAM, 0) ;
   if (sock < 0) {
     perror ("socket");
@@ -79,13 +102,13 @@ void* internal_serveur(void* datas){
     printf("Internal Serveur : Socket Created !\n");
   }
 
-  printf("Internal erveur : Bind INADDR_ANY\n");
+  printf("Internal Serveur : Bind INADDR_ANY\n");
   int port = 2345;
-  donnees->int_adresse.sin_port = htons((short) atoi(port)); // port du serveur
+  S->int_adresse.sin_port = htons((short)port); // port du serveur
 
-  while(bind(sock, (struct sockaddr *)&donnees->int_adresse, sizeof(donnees->int_adresse)) < 0) {
+  while(bind(sock, (struct sockaddr *) &S->int_adresse, sizeof(S->int_adresse)) < 0) {
     port++;
-    donnees->int_adresse.sin_port = htons((short) atoi(port)); // port du serveur
+    S->int_adresse.sin_port = htons((short) atoi(port)); // port du serveur
   }
   printf("Internal Serveur : Bind Created on port %d!\n", port);
 
@@ -100,6 +123,9 @@ void* internal_serveur(void* datas){
 
   struct sockaddr_in adresse_client; // Creation de la reponse accept
   unsigned int adresse_client_lenght = sizeof(adresse_client); // On prend sa longueur
+  printf("C\n");
+  sem_post(&S->ecriture);
+  printf("D\n");
   int accept_response = accept(sock, (struct sockaddr*) &adresse_client, &adresse_client_lenght); // On attend sa reponse
   if(accept_response < 0) { // Si erreur on quitte
     perror("accept");
