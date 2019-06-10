@@ -148,6 +148,9 @@ int main(int argc, char const *argv[]) {
   printf("--------------------------------------\n");
   printf("|        WELCOME TO THE GAME         |\n");
   printf("--------------------------------------\n");
+  unsigned int coeur = 9829;
+  printf("%c\n", (unsigned char) coeur);
+  printf("♠♣♥♦\n");
   usleep(1000000); // 1 seconde d'attente
 
   if(createPool(NBR_JOUEURS) == NBR_JOUEURS) {
@@ -226,10 +229,19 @@ int main(int argc, char const *argv[]) {
   printf("|            LET'S BEGIN             |\n");
   printf("--------------------------------------\n");
   usleep(1000000); // 1 seconde d'attente
+  // Creation du jeu
+
+
+
+
+
+
+
 
   // On a tous les joueurs
   int game = 1;
   while(game) {
+
 
   }
   // Le serveur va être arreter

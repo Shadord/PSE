@@ -4,8 +4,7 @@
 void* internal_serveur(void* datas);
 
 typedef struct {
-  sem_t ecriture;
-  sem_t lecture;
+  sem_t attente_serveur;
   struct sockaddr_in int_adresse;
 } int_S;
 
@@ -30,8 +29,7 @@ int main(int argc, char const *argv[]) {
   running = 1;
   // Création d'un thread serveur qui attendrai 1 connection : celle du client du serveur
   int_S S;
-  sem_init(&S.ecriture, 0, 0);
-  sem_init(&S.lecture, 0, 0);
+  sem_init(&S.attente_serveur, 0, 0);
   struct sockaddr_in adresse;
   adresse.sin_addr.s_addr = INADDR_ANY;
   adresse.sin_family = AF_INET;
@@ -42,26 +40,21 @@ int main(int argc, char const *argv[]) {
     printf("Erreur dans la création du worker\n");
     erreur_IO ("pthread_create");
   }else{
-    printf("Création du Serveur Interne %d\n", ret);
+    printf("Création du Serveur Interne\n");
   }
 
   freeResolv();
   printf("Client : Wait For Line Sent\n");
-  sem_wait(&S.ecriture); // On bloque, des que le serveur interne sera pret on envois la commande de connection
+  sem_wait(&S.attente_serveur); // On bloque, des que le serveur interne sera pret on envois la commande de connection
 
   char co_line[100];
   strcat(co_line, "%S");
-  printf("Client : Wait For Line Sent\n");
   strcat(co_line, stringIP(ntohl(S.int_adresse.sin_addr.s_addr)));
-  printf("Client : Wait For Line Sent\n");
   strcat(co_line, "%");
-  printf("Client : Wait For Line Sent\n");
-  // Convertir le POrt en str sinon marche pas
   int someInt = ntohs(S.int_adresse.sin_port);
   char str[7];
   sprintf(str, "%d", someInt);
   strcat(co_line, str);
-  printf("Client : Wait For Line Sent\n");
   printf("%s",co_line);
   if(ecrireLigne(sock, co_line)<0) {
     perror("ecrireLigne");
@@ -69,10 +62,20 @@ int main(int argc, char const *argv[]) {
   }
 
   printf("Client : Connection Line Sent\n");
+  printf("Game : Attente d'autres joueurs...\n");
+  sem_wait(&S.attente_serveur); // On attend que le client_serveur ai envoyé un msg
+  printf("Game : Tous les joueurs sont connectés !\n");
+  printf("Game : Le jeu va démarrer !\n");
+  usleep(1000000);
+  system("clear");
+  printf("--------------------------------------\n");
+  printf("|            LET'S BEGIN             |\n");
+  printf("--------------------------------------\n");
+  printf("Game : Tri des cartes par le serveur...\n");
+  sem_wait(&S.attente_serveur);
 
   while(running) {
     char buffer[160];
-    printf("ligne> ");
     if (fgets(buffer, LIGNE_MAX, stdin) == NULL) {
       perror("fgets");
       exit(EXIT_FAILURE);
@@ -123,9 +126,7 @@ void* internal_serveur(void* datas){
 
   struct sockaddr_in adresse_client; // Creation de la reponse accept
   unsigned int adresse_client_lenght = sizeof(adresse_client); // On prend sa longueur
-  printf("C\n");
-  sem_post(&S->ecriture);
-  printf("D\n");
+  sem_post(&S->attente_serveur);
   int accept_response = accept(sock, (struct sockaddr*) &adresse_client, &adresse_client_lenght); // On attend sa reponse
   if(accept_response < 0) { // Si erreur on quitte
     perror("accept");
@@ -140,6 +141,19 @@ void* internal_serveur(void* datas){
     char buffer[160];
     int result = lireLigne(accept_response, buffer);
     if(result != -1 && result != 0) {
+      if(buffer[0] == '%'){ // il s'agit d'une commande client, on recoit l'ip et le port
+        if(buffer[1] == 'J') { // Tout les joueurs sont prets
+          sem_post(&S->attente_serveur);
+        }
+        if(buffer[1] == 'T') { // Toutes les cartes sont pretes
+          sem_post(&S->attente_serveur);
+        }
+        if(buffer[1] == 'C') { // On recoit son paquet
+          int nbr_cartes;
+          sem_post(&S->attente_serveur);
+        }
+
+      }
       if(strcmp(buffer, "fin") == 0) { // On demande la fin du serveur
         printf("External Serveur. Arret demandé.\n");
         int_serveur_run = 0;
