@@ -239,7 +239,7 @@ int main(int argc, char const *argv[]) {
 
 
   // On a tous les joueurs
-  int game = 1;
+  int game = 1;// Le jeu commence
   while(game) {
 
 
