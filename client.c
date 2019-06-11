@@ -6,7 +6,7 @@ void* internal_serveur(void* datas);
 typedef struct {
   sem_t attente_serveur;
   struct sockaddr_in int_adresse;
-} int_S;
+} internal;
 
 int main(int argc, char const *argv[]) {
   printf("Client : Creating a Socket\n");
@@ -28,7 +28,7 @@ int main(int argc, char const *argv[]) {
   }
   running = 1;
   // Création d'un thread serveur qui attendrai 1 connection : celle du client du serveur
-  int_S S;
+  internal S;
   sem_init(&S.attente_serveur, 0, 0);
   struct sockaddr_in adresse;
   adresse.sin_addr.s_addr = INADDR_ANY;
@@ -96,7 +96,7 @@ int main(int argc, char const *argv[]) {
 
 void* internal_serveur(void* datas){
   int int_serveur_run = 0;
-  int_S* S = (int_S*) datas; // Cast en un int_S*
+  internal* S = (internal*) datas; // Cast en un int_S*
   int sock = socket(AF_INET, SOCK_STREAM, 0) ;
   if (sock < 0) {
     perror ("socket");

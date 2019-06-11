@@ -2,7 +2,7 @@
 #
 include ../Makefile.inc
 
-EXE = serveur client
+EXE = cartes
 
 ${EXE): ${PSE_LIB}
 
@@ -10,5 +10,3 @@ all: ${EXE}
 
 clean:
 	rm -f *.o *~ ${EXE}
-
-

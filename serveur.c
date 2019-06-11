@@ -11,8 +11,10 @@ void* internal_client(void* datas);
 typedef struct {
   sem_t ecriture;
   sem_t lecture;
+  char buffer_ec[160];
+  char buffer_le[160];
   struct sockaddr_in int_adresse;
-} int_C;
+} internal;
 
 int arretServeur = 1;
 sem_t sem;
@@ -91,7 +93,7 @@ void * dialog(void * datas) {
             indice_buff++;
           }
 
-          int_C C;
+          internal C;
           sem_init(&C.ecriture, 0,0);
           sem_init(&C.lecture, 0,0);
           struct sockaddr_in* int_adresse = resolv(IP, PORT);
@@ -254,7 +256,7 @@ int main(int argc, char const *argv[]) {
 
 
 void* internal_client(void* datas){
-  int_C* donnees = (int_C*) datas; // Cast en un int_S*
+  internal* donnees = (internal*) datas; // Cast en un int_S*
   printf("Internal Client : Creating a Socket\n");
   int sock = socket(AF_INET, SOCK_STREAM, 0) ;
   if (sock < 0) {
@@ -278,13 +280,11 @@ void* internal_client(void* datas){
   freeResolv();
 
   while(running) {
-    char buffer[160];
-    if (fgets(buffer, LIGNE_MAX, stdin) == NULL) {
-      perror("fgets");
-      exit(EXIT_FAILURE);
+    sem_wait(&C->ecriture);
+    if(strcmp(C->buffer_ec, "%F") == 0){
+      break;
     }
-
-    if(ecrireLigne(sock, buffer)<0) {
+    if(ecrireLigne(sock, C->buffer_ec)<0) {
       perror("ecrireLigne");
       exit(EXIT_FAILURE);
     }
