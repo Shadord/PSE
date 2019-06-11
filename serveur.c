@@ -1,20 +1,14 @@
 #include "ligne.h"
 #include "pse.h"
-#define NBR_JOUEURS 2
+#include "systemf.h"
 
+#define NBR_JOUEURS 2
+char hostname[] = "Serveur";
 int createPool(int nbr);
 int findJoueur(int canal);
 void * dialog(void * datas); // Notre fabuleuse fonction de thread Data est un Datathread qui cible le thread
 void setAllToFree();
 void* internal_client(void* datas);
-
-typedef struct {
-  sem_t ecriture;
-  sem_t lecture;
-  char buffer_ec[160];
-  char buffer_le[160];
-  struct sockaddr_in int_adresse;
-} internal;
 
 int arretServeur = 1;
 sem_t sem;
@@ -145,15 +139,8 @@ void setAllToFree(){
 int main(int argc, char const *argv[]) {
   int journal = open("journal.log", O_WRONLY); //Création du journal !
   lseek(journal, 0, SEEK_END);
+  welcome();
 
-
-  printf("--------------------------------------\n");
-  printf("|        WELCOME TO THE GAME         |\n");
-  printf("--------------------------------------\n");
-  unsigned int coeur = 9829;
-  printf("%c\n", (unsigned char) coeur);
-  printf("♠♣♥♦\n");
-  usleep(1000000); // 1 seconde d'attente
 
   if(createPool(NBR_JOUEURS) == NBR_JOUEURS) {
     printf("GAME : Création du jeu effectué !\n");
@@ -162,35 +149,10 @@ int main(int argc, char const *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  printf("Serveur : Creating a Socket\n");
-  int sock = socket(AF_INET, SOCK_STREAM, 0) ;
-  if (sock < 0) {
-    perror ("socket");
-    exit (EXIT_FAILURE);
-  }else{
-    printf("Serveur : Socket Created !\n");
-  }
-
-  printf("Serveur : Bind INADDR_ANY\n");
+  int sock = socket_(hostname);
   struct sockaddr_in adresse;
-  adresse.sin_addr.s_addr = INADDR_ANY;
-  adresse.sin_family = AF_INET;
-  adresse.sin_port = htons((short) atoi(argv[1]));
-
-  if (bind(sock, (struct sockaddr *)&adresse, sizeof(adresse)) < 0) {
-    perror ("bind");
-    exit (EXIT_FAILURE);
-  }else{
-    printf("Serveur : Bind Created !\n");
-  }
-
-  printf("Serveur : Listen connection\n");
-  if(listen(sock, NBR_JOUEURS +1) < 0) {
-    perror("listen");
-    exit(EXIT_FAILURE);
-  }else{
-    printf("Serveur : Listen Created !\n");
-  }
+  bind_(sock, argv[1], &adresse, hostname);
+  listen_(sock, hostname, NBR_JOUEURS);
 
 
   printf("Serveur : Mutex create\n");
@@ -226,19 +188,8 @@ int main(int argc, char const *argv[]) {
   }
   printf("Serveur : Tous les joueurs sont connectés, le jeux va commencer !\n");
   usleep(1000000); // 1 seconde d'attente
-  system("clear");
-  printf("--------------------------------------\n");
-  printf("|            LET'S BEGIN             |\n");
-  printf("--------------------------------------\n");
-  usleep(1000000); // 1 seconde d'attente
+  begin();
   // Creation du jeu
-
-
-
-
-
-
-
 
   // On a tous les joueurs
   int game = 1;// Le jeu commence
@@ -280,11 +231,11 @@ void* internal_client(void* datas){
   freeResolv();
 
   while(running) {
-    sem_wait(&C->ecriture);
-    if(strcmp(C->buffer_ec, "%F") == 0){
+    sem_wait(&donnees->ecriture);
+    if(strcmp(donnees->buffer_ec, "%F") == 0){
       break;
     }
-    if(ecrireLigne(sock, C->buffer_ec)<0) {
+    if(ecrireLigne(sock, donnees->buffer_ec)<0) {
       perror("ecrireLigne");
       exit(EXIT_FAILURE);
     }

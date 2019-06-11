@@ -1,23 +1,13 @@
 #include "ligne.h"
 #include "pse.h"
+#include "systemf.h"
 
 void* internal_serveur(void* datas);
 
-typedef struct {
-  sem_t attente_serveur;
-  struct sockaddr_in int_adresse;
-} internal;
-
 int main(int argc, char const *argv[]) {
-  printf("Client : Creating a Socket\n");
-  int sock = socket(AF_INET, SOCK_STREAM, 0) ;
-  if (sock < 0) {
-    perror ("socket");
-    exit (EXIT_FAILURE);
-  }
-  printf("Client : Socket Created\n");
-
-
+  welcome();
+  char hostname[] = "Client (Client)";
+  int sock = socket_(hostname);
   struct sockaddr_in* adresse_serveur = resolv(argv[1], argv[2]);
 
   int connection = connect(sock, (struct sockaddr*) adresse_serveur, sizeof(struct sockaddr_in));
@@ -29,11 +19,9 @@ int main(int argc, char const *argv[]) {
   running = 1;
   // Création d'un thread serveur qui attendrai 1 connection : celle du client du serveur
   internal S;
-  sem_init(&S.attente_serveur, 0, 0);
   struct sockaddr_in adresse;
-  adresse.sin_addr.s_addr = INADDR_ANY;
-  adresse.sin_family = AF_INET;
   S.int_adresse = adresse;
+  sem_init(&S.attente_serveur, 0, 0);
   pthread_t idThread; // On crée le thread
   int ret = pthread_create (&idThread, NULL, internal_serveur, &S); // On le génère
   if(ret != 0) { // On check si c'est bon ?
@@ -67,10 +55,7 @@ int main(int argc, char const *argv[]) {
   printf("Game : Tous les joueurs sont connectés !\n");
   printf("Game : Le jeu va démarrer !\n");
   usleep(1000000);
-  system("clear");
-  printf("--------------------------------------\n");
-  printf("|            LET'S BEGIN             |\n");
-  printf("--------------------------------------\n");
+  begin();
   printf("Game : Tri des cartes par le serveur...\n");
   sem_wait(&S.attente_serveur);
 
@@ -96,33 +81,12 @@ int main(int argc, char const *argv[]) {
 
 void* internal_serveur(void* datas){
   int int_serveur_run = 0;
+  char hostname[] = "Client (Serveur)";
   internal* S = (internal*) datas; // Cast en un int_S*
-  int sock = socket(AF_INET, SOCK_STREAM, 0) ;
-  if (sock < 0) {
-    perror ("socket");
-    exit (EXIT_FAILURE);
-  }else{
-    printf("Internal Serveur : Socket Created !\n");
-  }
 
-  printf("Internal Serveur : Bind INADDR_ANY\n");
-  int port = 2345;
-  S->int_adresse.sin_port = htons((short)port); // port du serveur
-
-  while(bind(sock, (struct sockaddr *) &S->int_adresse, sizeof(S->int_adresse)) < 0) {
-    port++;
-    S->int_adresse.sin_port = htons((short) atoi(port)); // port du serveur
-  }
-  printf("Internal Serveur : Bind Created on port %d!\n", port);
-
-
-  printf("Internal Serveur : Listen connection\n");
-  if(listen(sock, 1) < 0) {
-    perror("listen");
-    exit(EXIT_FAILURE);
-  }else{
-    printf("Internal Serveur : Listen Created !\n");
-  }
+  int sock = socket_(hostname);
+  bind_(sock, "-1", &S->int_adresse, hostname);
+  listen_(sock, hostname, 1);
 
   struct sockaddr_in adresse_client; // Creation de la reponse accept
   unsigned int adresse_client_lenght = sizeof(adresse_client); // On prend sa longueur

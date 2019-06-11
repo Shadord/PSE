@@ -2,7 +2,7 @@
 #
 include ../Makefile.inc
 
-EXE = cartes
+EXE = client
 
 ${EXE): ${PSE_LIB}
 
