@@ -177,7 +177,7 @@ void couper_paquet_en_deux(Paquet *P, Main *Main1, Main *Main2)
 void afficher_main(Main *M)
 	{
 	printf("Affichage Main :\n");
-	for (int i=0; i<52; i++)
+	for (int i=0; i<M->size; i++)
 		{
 		Carte *C = M->liste_cartes[i];
 		if(i < 10)
@@ -286,55 +286,50 @@ void comparer_cartes(int indice_carte_1, int indice_carte_2, Joueur *J1, Joueur 
 	Carte *C2 = J2->Main->liste_cartes[indice_carte_2];
 	retirer_carte_main(C1, J1->Main); // On retire les deux cartes choisies des paquets respectifs des joueurs
 	retirer_carte_main(C2, J2->Main);
-	printf("1\n");
 	if (C1->value==C2->value) // Les deux cartes jouées ont même valeur
 		{
-		printf("6\n");
 		printf("Les cartes ont même valeur.\n");
 		ajouter_carte_main(C1, J1->Main); // On les remet chacune dans les paquets des joueurs
-		printf("9\n");
 		ajouter_carte_main(C2, J2->Main);
-		printf("2\n");
 		}
 	else if (C1->value>C2->value || C1->value == 1) // J1 gagne
 		{
-		printf("10\n");
 		decaler(J2->Main);
 		printf("Joueur 1 gagne.\n");
 		J1->nb_points++; // J1 gagne 1 point
-		printf("11\n");
 		ajouter_carte_main(C1, J1->Main); // J1 récupère sa carte
-		printf("12\n");
 		ajouter_carte_main(C2, J1->Main); // J1 récupère la carte de J2 également
-		printf("3\n");
 		}
 	else if (C1->value<C2->value || C2->value ==1)
 		{
-		printf("13\n");
 		decaler(J1->Main);
 		printf("Joueur 2 gagne.\n");
 		J2->nb_points++; // J2 gagne 1 point
-		printf("14\n");
 		ajouter_carte_main(C1, J2->Main); // J2 récupère la carte de J1
-		printf("15\n");
 		ajouter_carte_main(C2, J2->Main); // J2 récupère sa carte
-		printf("4\n");
 		}
 	printf("Taille Main 1 : %d\n", J1->Main->size);
 	printf("Taille Main 2 : %d\n", J2->Main->size);
-	printf("5\n");
 	}
 
 void coder_main(Main *M, char code[])
 	{
-	char nb_cartes[2];
+	char nb_cartes[5];
 	char carte[5];
 
 	code[0]='%';
 	code[1]='C';
 
-	sprintf(nb_cartes, "%d", M->size);
-	strcat(code, nb_cartes);
+	if (M->size<10)
+		{
+		sprintf(nb_cartes, "0%d", M->size);
+		strcat(code, nb_cartes);
+		}
+	else
+		{
+		sprintf(nb_cartes, "%d", M->size);
+		strcat(code, nb_cartes);
+		}
 
 	Carte *courant;
 
@@ -355,7 +350,20 @@ void coder_main(Main *M, char code[])
 	printf("%s\n", code);
 	}
 
-
+void decoder(char code[], Main *M)
+	{
+	M->liste_cartes=(Carte**)malloc(52*sizeof(Carte*));
+	M->size = 10*((int)(code[2])-48) + (int)(code[3])-48;
+	printf("Taille de la nouvelle main : %d\n", M->size); 
+	for (int i=0; i<M->size; i++)
+		{
+		Carte *courant = (Carte*)malloc(sizeof(Carte));
+		M->liste_cartes[i] = courant;
+		courant->value = 10*((int)code[(i*3)+4]-48) + (int)code[(i*3)+5]-48;
+		courant->famille = (int)code[(i*3)+6]-48;
+		}
+	afficher_main(M);
+	}
 
 
 /*Main*/
@@ -394,7 +402,12 @@ int main(void)
 	}
 
 	char code[NB_TAB];
-	//coder_main(&Main1, code);
+	coder_main(&Main1, code);
+
+	Main Main3 = {0, NULL};
+
+	char code_test[13]="%C03112052060";
+	decoder(code_test, &Main3);
 	
 	return 0;
 	}
