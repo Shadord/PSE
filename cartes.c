@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include<math.h>
+
+#define NB_TAB 220
+
 /*NE PAS OUBLIER DE RAJOUTER -lm POUR COMPILER !!*/
 
 /*Structures (partie à retirer ensuite car déjà dans le programme de Nathan*/
@@ -173,7 +176,7 @@ void couper_paquet_en_deux(Paquet *P, Main *Main1, Main *Main2)
 void afficher_main(Main *M)
 	{
 	printf("Affichage Main :\n");
-	for (int i=0; i<M->size; i++)
+	for (int i=0; i<52; i++)
 		{
 		Carte *C = M->liste_cartes[i];
 		if (C!=NULL)
@@ -267,7 +270,6 @@ void comparer_cartes(Paquet *Main1, Paquet *Main2, int *points1, int *points2)
 	}
 /*Fonction qui décode le message avec les %"*/
 
-
 void retirer_carte_main(Carte *C, Main *M)
 	{
 	int i = 0;
@@ -296,6 +298,7 @@ void retirer_carte_main(Carte *C, Main *M)
 	if (trouve == 1) // La carte que l'on souhaite retirer se trouve bien dans la main
 		{
 		M->liste_cartes[i]=NULL; // On retire C de la main
+		M->size--;
 		}
 	if (i>=52)
 		{
@@ -305,24 +308,23 @@ void retirer_carte_main(Carte *C, Main *M)
 
 void ajouter_carte_main(Carte *C, Main *M)
 	{
-	int i = 0;
-	while (i<52)
+	Carte **liste_cartes=(Carte**)malloc(52*sizeof(Carte*));
+	int indice = 0;
+	for (int j=0; j<52; j++) // Le tableau liste_cartes est identique à la main à la différence près qu'il ne comprend pas de "trou".
 		{
-		if (M->liste_cartes[i]==NULL)
+		if (M->liste_cartes[j]!=NULL)
 			{
-			M->liste_cartes[i] = C;
-			break;
+			liste_cartes[indice]=M->liste_cartes[j];
+			indice++;
 			}
-		else
-			{
-			i++;
-			}
-		}
-	if (i>=52) // Ce cas est théoriquement impossible
-		{
-		printf("Il n'y a plus de place pour ajouter une carte dans la main.\n");
-		}
+		} 
+	free(M->liste_cartes);
+	M->liste_cartes = liste_cartes;
+
+	M->liste_cartes[indice]=C;
+	M->size++;
 	}
+	
 
 void comparer_cartes(int indice_carte_1, int indice_carte_2, Joueur *J1, Joueur *J2)
 	
@@ -353,7 +355,35 @@ void comparer_cartes(int indice_carte_1, int indice_carte_2, Joueur *J1, Joueur 
 		}
 	}
 
-/*Ajouter les cartes à la fin du paquet
+void coder_main(Main *M)
+	{
+	char code[NB_TAB];
+	char nb_cartes[2];
+	char carte[4];
+
+	code[0]='%';
+	code[1]='C';
+	
+	sprintf(nb_cartes, "%d", M->size);
+	strcat(code, nb_cartes);
+
+	Carte *courant;
+
+	for (int i=0; i<M->size; i++)
+		{
+		courant = M->liste_cartes[i];
+		if (courant->value<10)
+			{
+			sprintf(carte, "0%d-%d", courant->value, courant->famille);
+			strcat(code, carte);
+			}
+		else
+			{
+			sprintf(carte, "%d-%d", courant->value, courant->famille);
+			strcat(code, carte);
+			}
+		}
+	}
 
 
 
