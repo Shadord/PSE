@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include<math.h>
+#include <string.h>
 
 #define NB_TAB 220
 
@@ -187,88 +188,22 @@ void afficher_main(Main *M)
 	printf("\n\n");
 	}
 
-/*Comparaison entre les cartes + comptabilisation des points*/
-/*
-void comparer_cartes(Paquet *Main1, Paquet *Main2, int *points1, int *points2)
+int decaler(Main *M)
 	{
-	Carte *CarteJ1 = Main1->first;
-	Carte *CarteJ2 = Main2->first;
-	int bataille = 0;
-	Paquet *tampon1;
-	//tampon1->first=NULL;
-	Paquet *tampon2;
-	//tampon2->first=NULL;
-
-	Carte *premtampon1;
-	Carte *premtampon2;
-
-	while (CarteJ1->value==CarteJ2->value)
+	Carte **liste_cartes=(Carte**)malloc(52*sizeof(Carte*));
+	int indice = 0;
+	for (int j=0; j<52; j++) // Le tableau liste_cartes est identique à la main à la différence près qu'il ne comprend pas de "trou".
 		{
-		bataille = 1;
-		tampon1->size=tampon1->size + 2;
-		tampon2->size=tampon2->size + 2;
-		empiler(tampon1, CarteJ1); // Les deux cartes doivent être départagées par d'autres cartes
-		empiler(tampon2, CarteJ2);
-		Carte *facecache1 = CarteJ1->next; // Les deux joueurs posent une carte face cachée
-		Carte *facecache2 = CarteJ2->next;
-		empiler(tampon1, facecache1);
-		empiler(tampon2, facecache2);
-
-		CarteJ1 = facecache1->next; // Les deux joueurs retirent une cartes qui les départagera 
-		CarteJ2 = facecache2->next;		
-		}
-
-	if (bataille = 1)
-		{
-		premtampon1=tampon1->first;
-		premtampon2=tampon2->first;
-		}
-
-	if (CarteJ1->value==1 || ((CarteJ1->value>CarteJ2->value) && (CarteJ2 != 1))) // Joueur 1 remporte la manche
-		{
-		printf("Joueur 1 gagne !\n");
-		Main2->first=CarteJ2->next; // On retire la carte du paquet du joueur 2
-		empiler(Main1, CarteJ2); // On met la carte du joueur 2 dans le paquet du joueur 1
-		Main1->first=CarteJ1->next;
-		empiler(Main1, CarteJ1); // On remet la carte à la fin du paquet
-		while(tampon1->first!=NULL) // S'il y a eu bataille, Joueur 1 récupère toutes les cartes
-			{	
-			empiler(Main1, premtampon1);
-			premtampon1=premtampon1->next;
-			}
-		while (tampon2->first!=NULL)
+		if (M->liste_cartes[j]!=NULL)
 			{
-			empiler(Main1, premtampon2);
-			premtampon2=premtampon2->next;
+			liste_cartes[indice]=M->liste_cartes[j];
+			indice++;
 			}
-		points1++;
-		}
-	else if (CarteJ2->value==1 || ((CarteJ2->value>CarteJ1->value) && (CarteJ1 != 1))) // Joueur 2 remporte la manche
-		{
-		printf("Joueur 2 gagne !\n");
-		Main1->first=CarteJ1->next; // On retire la carte du paquet du joueur 2
-		empiler(Main2, CarteJ1); // On met la carte du joueur 2 dans le paquet du joueur 1
-		Main2->first=CarteJ2->next;
-		empiler(Main2, CarteJ2); // On remet la carte à la fin du paquet
-		while(tampon1->first!=NULL) // S'il y a eu bataille, Joueur 2 récupère toutes les cartes
-			{	
-			empiler(Main2, premtampon1);
-			premtampon1=premtampon1->next;
-			}
-		while (tampon2->first!=NULL)
-			{
-			empiler(Main2, premtampon2);
-			premtampon2=premtampon2->next;
-			}
-		points2++;
-		}
-	else
-		{
-		printf("Il existe un autre cas que j'ai oublié\n");
-		}
-	
+		} 
+	free(M->liste_cartes);
+	M->liste_cartes = liste_cartes;
+	return indice;
 	}
-/*Fonction qui décode le message avec les %"*/
 
 void retirer_carte_main(Carte *C, Main *M)
 	{
@@ -299,6 +234,7 @@ void retirer_carte_main(Carte *C, Main *M)
 		{
 		M->liste_cartes[i]=NULL; // On retire C de la main
 		M->size--;
+		//decaler(M);
 		}
 	if (i>=52)
 		{
@@ -308,58 +244,63 @@ void retirer_carte_main(Carte *C, Main *M)
 
 void ajouter_carte_main(Carte *C, Main *M)
 	{
-	Carte **liste_cartes=(Carte**)malloc(52*sizeof(Carte*));
-	int indice = 0;
-	for (int j=0; j<52; j++) // Le tableau liste_cartes est identique à la main à la différence près qu'il ne comprend pas de "trou".
-		{
-		if (M->liste_cartes[j]!=NULL)
-			{
-			liste_cartes[indice]=M->liste_cartes[j];
-			indice++;
-			}
-		} 
-	free(M->liste_cartes);
-	M->liste_cartes = liste_cartes;
-
+	int indice;
+	indice = decaler(M);
+	
 	M->liste_cartes[indice]=C;
 	M->size++;
 	}
 	
 
-void comparer_cartes(int indice_carte_1, int indice_carte_2, Joueur *J1, Joueur *J2)
-	
+void comparer_cartes(int indice_carte_1, int indice_carte_2, Joueur *J1, Joueur *J2)	
 	{
 	Carte *C1 = J1->Main->liste_cartes[indice_carte_1];
 	Carte *C2 = J2->Main->liste_cartes[indice_carte_2];
 	retirer_carte_main(C1, J1->Main); // On retire les deux cartes choisies des paquets respectifs des joueurs
 	retirer_carte_main(C2, J2->Main);
+	printf("1\n");
 	if (C1->value==C2->value) // Les deux cartes jouées ont même valeur
 		{
+		printf("6\n");
 		printf("Les cartes ont même valeur.\n");
 		ajouter_carte_main(C1, J1->Main); // On les remet chacune dans les paquets des joueurs
+		printf("9\n");
 		ajouter_carte_main(C2, J2->Main);
+		printf("2\n");
 		}
-	else if (C1->value>C2->value) // J1 gagne
+	else if (C1->value>C2->value || C1->value == 1) // J1 gagne
 		{
+		printf("10\n");
+		decaler(J2->Main);
 		printf("Joueur 1 gagne.\n");
 		J1->nb_points++; // J1 gagne 1 point
+		printf("11\n");
 		ajouter_carte_main(C1, J1->Main); // J1 récupère sa carte
+		printf("12\n");
 		ajouter_carte_main(C2, J1->Main); // J1 récupère la carte de J2 également
+		printf("3\n");
 		}
-	else // J2 gagne
+	else if (C1->value<C2->value || C2->value ==1)
 		{
+		printf("13\n");
+		decaler(J1->Main);
 		printf("Joueur 2 gagne.\n");
 		J2->nb_points++; // J2 gagne 1 point
+		printf("14\n");
 		ajouter_carte_main(C1, J2->Main); // J2 récupère la carte de J1
+		printf("15\n");
 		ajouter_carte_main(C2, J2->Main); // J2 récupère sa carte
+		printf("4\n");
 		}
+	printf("Taille Main 1 : %d\n", J1->Main->size);
+	printf("Taille Main 2 : %d\n", J2->Main->size);
+	printf("5\n");
 	}
 
-void coder_main(Main *M)
+void coder_main(Main *M, char code[])
 	{
-	char code[NB_TAB];
 	char nb_cartes[2];
-	char carte[4];
+	char carte[5];
 
 	code[0]='%';
 	code[1]='C';
@@ -374,15 +315,16 @@ void coder_main(Main *M)
 		courant = M->liste_cartes[i];
 		if (courant->value<10)
 			{
-			sprintf(carte, "0%d-%d", courant->value, courant->famille);
+			sprintf(carte, "0%d%d", courant->value, courant->famille);
 			strcat(code, carte);
 			}
 		else
 			{
-			sprintf(carte, "%d-%d", courant->value, courant->famille);
+			sprintf(carte, "%d%d", courant->value, courant->famille);
 			strcat(code, carte);
 			}
 		}
+	printf("%s\n", code);
 	}
 
 
@@ -415,14 +357,17 @@ int main(void)
 	printf("Main 2 :\n");
 	afficher_main(&Main2);
 	for(int i = 0; i<4; i++){
-		comparer_cartes(i, i, &Joueur1, &Joueur2);
+		printf("\n\nTOUR %d\n", i);
+		comparer_cartes(0, 0, &Joueur1, &Joueur2);
 		printf("Main 1 %d:\n", Joueur1.nb_points);
 		afficher_main(&Main1);
 		printf("Main 2 %d:\n", Joueur2.nb_points);
 		afficher_main(&Main2);
 	}
-	
 
+	char code[NB_TAB];
+	//coder_main(&Main1, code);
+	
 	return 0;
 	}
 
