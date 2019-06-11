@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include<math.h>
+#include <math.h>
 #include <string.h>
 
 #define NB_TAB 220
@@ -25,13 +25,13 @@ typedef struct
 	Carte *last;
 	} Paquet;
 
-typedef struct 
+typedef struct
 	{
 	int size;
 	Carte **liste_cartes;
 	} Main;
 
-typedef struct 
+typedef struct
 	{
 	int nb_points;
 	Main *Main;
@@ -107,7 +107,7 @@ Il faut mettre en argument le paquet de carte bien trié P et le nouveau paquet 
 Paquet* melange_paquet(Paquet *P, Paquet *Q)
 	{
 	//Paquet *Q = malloc(sizeof(Paquet*)); // Q correspond au paquet P mélangé
-	Q->size=P->size; 
+	Q->size=P->size;
 	double alea;
 	int nb_alea;
 	Carte *Cartei;
@@ -135,11 +135,11 @@ Paquet* melange_paquet(Paquet *P, Paquet *Q)
 					}
 				else
 					{
-					Carteprec->next=Cartei->next;// retirer la carte du paquet P	
+					Carteprec->next=Cartei->next;// retirer la carte du paquet P
 					Cartei->next=NULL;
 					empiler(Q, Cartei);
-					}				
-				 // On met la carte tirée aléatoirement dans le paquet Q		
+					}
+				 // On met la carte tirée aléatoirement dans le paquet Q
 				}
 			else
 				{
@@ -158,7 +158,7 @@ void couper_paquet_en_deux(Paquet *P, Main *Main1, Main *Main2)
 	Main2->size = P->size - ((P->size) /2);
 	Main1->liste_cartes=(Carte**)malloc((P->size)*sizeof(Carte*));
 	Main2->liste_cartes=(Carte**)malloc((P->size)*sizeof(Carte*));
-	
+
 	Carte *courant = P->first;
 	for (int i=0; i<P->size; i++)
 		{
@@ -180,10 +180,39 @@ void afficher_main(Main *M)
 	for (int i=0; i<52; i++)
 		{
 		Carte *C = M->liste_cartes[i];
-		if (C!=NULL)
-			{
-			printf("%d : famille %d n°%d\n", i, C->famille, C->value);
-			}
+		if(i < 10)
+			printf("0%d ", i);
+		else
+			printf("%d ", i);
+		switch(C->famille){
+			case 0 :
+				if(C->value < 10)
+					printf("\033[30;47m0%d ♠\033[0m\n", C->value);
+				else
+					printf("\033[30;47m%d ♠\033[0m\n", C->value);
+				break;
+
+			case 1 :
+				if(C->value < 10)
+					printf("\033[30;47m0%d ♣\033[0m\n", C->value);
+				else
+					printf("\033[30;47m%d ♣\033[0m\n", C->value);
+				break;
+
+			case 2 :
+				if(C->value < 10)
+					printf("\033[31;47m0%d ♦\033[0m\n", C->value);
+				else
+					printf("\033[31;47m%d ♦\033[0m\n", C->value);
+				break;
+
+			case 3 :
+				if(C->value < 10)
+					printf("\033[31;47m0%d ♥\033[0m\n", C->value);
+				else
+					printf("\033[31;47m%d ♥\033[0m\n", C->value);
+				break;
+		}
 		}
 	printf("\n\n");
 	}
@@ -220,13 +249,13 @@ void retirer_carte_main(Carte *C, Main *M)
 			trouve = 1;
 			break;
 			}
-		else 
+		else
 			{
 			i++;
 			while(M->liste_cartes[i] == NULL){
 				i++;
 			}
-			
+
 			courant = M->liste_cartes[i];
 			}
 		}
@@ -246,11 +275,10 @@ void ajouter_carte_main(Carte *C, Main *M)
 	{
 	int indice;
 	indice = decaler(M);
-	
 	M->liste_cartes[indice]=C;
 	M->size++;
 	}
-	
+
 
 void comparer_cartes(int indice_carte_1, int indice_carte_2, Joueur *J1, Joueur *J2)	
 	{
@@ -304,7 +332,7 @@ void coder_main(Main *M, char code[])
 
 	code[0]='%';
 	code[1]='C';
-	
+
 	sprintf(nb_cartes, "%d", M->size);
 	strcat(code, nb_cartes);
 
@@ -330,7 +358,7 @@ void coder_main(Main *M, char code[])
 
 
 
-/*Main*/ 
+/*Main*/
 
 int main(void)
 	{
@@ -345,7 +373,7 @@ int main(void)
 	paquet_bien_range(&Paquet_Cartes);
 	printf("Affichage paquet de cartes bien rangé : \n");
 	afficher_paquet(&Paquet_Cartes);
-	
+
 	printf("\n\nAffichage paquet de cartes mélangé : \n");
 	melange_paquet(&Paquet_Cartes, &nouvPaquet_Cartes);
 	Paquet_Cartes = nouvPaquet_Cartes;
@@ -370,35 +398,3 @@ int main(void)
 	
 	return 0;
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
