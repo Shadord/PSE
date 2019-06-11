@@ -151,7 +151,7 @@ int main(int argc, char const *argv[]) {
 
   int sock = socket_(hostname);
   struct sockaddr_in adresse;
-  bind_(sock, argv[1], &adresse, hostname);
+  bindF(sock, argv[1], &adresse, hostname);
   listen_(sock, hostname, NBR_JOUEURS);
 
 

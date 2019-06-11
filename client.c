@@ -85,7 +85,7 @@ void* internal_serveur(void* datas){
   internal* S = (internal*) datas; // Cast en un int_S*
 
   int sock = socket_(hostname);
-  bind_(sock, "-1", &S->int_adresse, hostname);
+  bindF(sock, "-1", &S->int_adresse, hostname);
   listen_(sock, hostname, 1);
 
   struct sockaddr_in adresse_client; // Creation de la reponse accept
