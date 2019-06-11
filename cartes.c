@@ -21,7 +21,7 @@ typedef struct
 	Carte *last;
 	} Paquet;
 
-typedef struct 
+typedef struct
 	{
 	int size;
 	Carte **liste_cartes;
@@ -97,7 +97,7 @@ Il faut mettre en argument le paquet de carte bien trié P et le nouveau paquet 
 Paquet* melange_paquet(Paquet *P, Paquet *Q)
 	{
 	//Paquet *Q = malloc(sizeof(Paquet*)); // Q correspond au paquet P mélangé
-	Q->size=P->size; 
+	Q->size=P->size;
 	double alea;
 	int nb_alea;
 	Carte *Cartei;
@@ -125,11 +125,11 @@ Paquet* melange_paquet(Paquet *P, Paquet *Q)
 					}
 				else
 					{
-					Carteprec->next=Cartei->next;// retirer la carte du paquet P	
+					Carteprec->next=Cartei->next;// retirer la carte du paquet P
 					Cartei->next=NULL;
 					empiler(Q, Cartei);
-					}				
-				 // On met la carte tirée aléatoirement dans le paquet Q		
+					}
+				 // On met la carte tirée aléatoirement dans le paquet Q
 				}
 			else
 				{
@@ -148,7 +148,7 @@ void couper_paquet_en_deux(Paquet *P, Main *Main1, Main *Main2)
 	Main2->size = P->size - ((P->size) /2);
 	Main1->liste_cartes=(Carte**)malloc((P->size)*sizeof(Carte*));
 	Main2->liste_cartes=(Carte**)malloc((P->size)*sizeof(Carte*));
-	
+
 	Carte *courant = P->first;
 	for (int i=0; i<P->size; i++)
 		{
@@ -170,7 +170,39 @@ void afficher_main(Main *M)
 	for (int i=0; i<M->size; i++)
 		{
 		Carte *C = M->liste_cartes[i];
-		printf("famille %d n°%d\n", C->famille, C->value);
+		if(i < 10)
+			printf("0%d ", i);
+		else
+			printf("%d ", i);
+		switch(C->famille){
+			case 0 :
+				if(C->value < 10)
+					printf("\033[30;47m0%d ♠\033[0m\n", C->value);
+				else
+					printf("\033[30;47m%d ♠\033[0m\n", C->value);
+				break;
+
+			case 1 :
+				if(C->value < 10)
+					printf("\033[30;47m0%d ♣\033[0m\n", C->value);
+				else
+					printf("\033[30;47m%d ♣\033[0m\n", C->value);
+				break;
+
+			case 2 :
+				if(C->value < 10)
+					printf("\033[31;47m0%d ♦\033[0m\n", C->value);
+				else
+					printf("\033[31;47m%d ♦\033[0m\n", C->value);
+				break;
+
+			case 3 :
+				if(C->value < 10)
+					printf("\033[31;47m0%d ♥\033[0m\n", C->value);
+				else
+					printf("\033[31;47m%d ♥\033[0m\n", C->value);
+				break;
+		}
 		}
 	printf("\n\n");
 	}
@@ -202,8 +234,8 @@ void comparer_cartes(Paquet *Main1, Paquet *Main2, int *points1, int *points2)
 		empiler(tampon1, facecache1);
 		empiler(tampon2, facecache2);
 
-		CarteJ1 = facecache1->next; // Les deux joueurs retirent une cartes qui les départagera 
-		CarteJ2 = facecache2->next;		
+		CarteJ1 = facecache1->next; // Les deux joueurs retirent une cartes qui les départagera
+		CarteJ2 = facecache2->next;
 		}
 
 	if (bataille = 1)
@@ -220,7 +252,7 @@ void comparer_cartes(Paquet *Main1, Paquet *Main2, int *points1, int *points2)
 		Main1->first=CarteJ1->next;
 		empiler(Main1, CarteJ1); // On remet la carte à la fin du paquet
 		while(tampon1->first!=NULL) // S'il y a eu bataille, Joueur 1 récupère toutes les cartes
-			{	
+			{
 			empiler(Main1, premtampon1);
 			premtampon1=premtampon1->next;
 			}
@@ -239,7 +271,7 @@ void comparer_cartes(Paquet *Main1, Paquet *Main2, int *points1, int *points2)
 		Main2->first=CarteJ2->next;
 		empiler(Main2, CarteJ2); // On remet la carte à la fin du paquet
 		while(tampon1->first!=NULL) // S'il y a eu bataille, Joueur 2 récupère toutes les cartes
-			{	
+			{
 			empiler(Main2, premtampon1);
 			premtampon1=premtampon1->next;
 			}
@@ -254,14 +286,14 @@ void comparer_cartes(Paquet *Main1, Paquet *Main2, int *points1, int *points2)
 		{
 		printf("Il existe un autre cas que j'ai oublié\n");
 		}
-	
+
 	}
 /*Fonction qui décode le message avec les %"
 
 /*Fonction qui compare les cartes*/
 
 
-/*Main*/ 
+/*Main*/
 
 int main(void)
 	{
@@ -276,7 +308,7 @@ int main(void)
 	paquet_bien_range(&Paquet_Cartes);
 	printf("Affichage paquet de cartes bien rangé : \n");
 	afficher_paquet(&Paquet_Cartes);
-	
+
 	printf("\n\nAffichage paquet de cartes mélangé : \n");
 	melange_paquet(&Paquet_Cartes, &nouvPaquet_Cartes);
 	Paquet_Cartes = nouvPaquet_Cartes;
@@ -290,35 +322,3 @@ int main(void)
 
 	return 0;
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
