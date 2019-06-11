@@ -8,8 +8,8 @@
 
 /*NE PAS OUBLIER DE RAJOUTER -lm POUR COMPILER !!*/
 
-/*Structures (partie à retirer ensuite car déjà dans le programme de Nathan*/
-typedef struct _Carte
+/*Structures */
+typedef struct _Carte 
 	{
 	int status; // 1 si la carte est prise, 0 sinon
 	int value; // numero de la carte, de 11 à 13 pour les figures
@@ -154,7 +154,7 @@ Paquet* melange_paquet(Paquet *P, Paquet *Q)
 /*Séparation du paquet de cartes en 2 et par suite création de deux mains*/
 void couper_paquet_en_deux(Paquet *P, Main *Main1, Main *Main2)
 	{
-	Main1->size = ((P->size)/2);
+	Main1->size = ((P->size)/2); 
 	Main2->size = P->size - ((P->size) /2);
 	Main1->liste_cartes=(Carte**)malloc((P->size)*sizeof(Carte*));
 	Main2->liste_cartes=(Carte**)malloc((P->size)*sizeof(Carte*));
@@ -174,6 +174,7 @@ void couper_paquet_en_deux(Paquet *P, Main *Main1, Main *Main2)
 		}
 	}
 
+/*Affichage de la main M*/
 void afficher_main(Main *M)
 	{
 	printf("Affichage Main :\n");
@@ -217,6 +218,8 @@ void afficher_main(Main *M)
 	printf("\n\n");
 	}
 
+/*Décalage des cartes contenues dans le tableau correspondant à la main
+Cela permet de ne pas se retrouver avec un trou entre deux cartes*/
 int decaler(Main *M)
 	{
 	Carte **liste_cartes=(Carte**)malloc(52*sizeof(Carte*));
@@ -234,6 +237,7 @@ int decaler(Main *M)
 	return indice;
 	}
 
+/*Retire une carte C choisie de la main M*/
 void retirer_carte_main(Carte *C, Main *M)
 	{
 	int i = 0;
@@ -271,6 +275,7 @@ void retirer_carte_main(Carte *C, Main *M)
 		}
 	}
 
+/*Ajoute une carte C à la fin de la main M*/
 void ajouter_carte_main(Carte *C, Main *M)
 	{
 	int indice;
@@ -279,7 +284,9 @@ void ajouter_carte_main(Carte *C, Main *M)
 	M->size++;
 	}
 
-
+/*Modélisation du jeu de la bataille revisitée
+On compare les cartes des deux joueurs pour désigner un gagnant
+On attribue au gagnant 1 point*/
 void comparer_cartes(int indice_carte_1, int indice_carte_2, Joueur *J1, Joueur *J2)	
 	{
 	Carte *C1 = J1->Main->liste_cartes[indice_carte_1];
@@ -312,7 +319,13 @@ void comparer_cartes(int indice_carte_1, int indice_carte_2, Joueur *J1, Joueur 
 	printf("Taille Main 2 : %d\n", J2->Main->size);
 	}
 
-void coder_main(Main *M, char code[])
+/*Permet de coder une main en une chaine de caractères
+La structure de la chaine est la suivante :
+%C, suivie de deux chiffres correspondant à la taille de la main
+Le reste des chiffres correspondent à des paquets de 3 chiffres, 
+les deux premiers chiffres symbolisent la valeur de la carte, 
+le dernier chiffre correspond à la famille de la carte*/
+void coder_main(Main *M, char code[]) 
 	{
 	char nb_cartes[5];
 	char carte[5];
@@ -350,10 +363,11 @@ void coder_main(Main *M, char code[])
 	printf("%s\n", code);
 	}
 
+/*Permet de décoder une chaine de caractères en une main*/
 void decoder(char code[], Main *M)
 	{
 	M->liste_cartes=(Carte**)malloc(52*sizeof(Carte*));
-	M->size = 10*((int)(code[2])-48) + (int)(code[3])-48;
+	M->size = 10*((int)(code[2])-48) + (int)(code[3])-48; // 48 correspond au code ASCII de 0
 	printf("Taille de la nouvelle main : %d\n", M->size); 
 	for (int i=0; i<M->size; i++)
 		{
@@ -400,9 +414,10 @@ int main(void)
 		printf("Main 2 %d:\n", Joueur2.nb_points);
 		afficher_main(&Main2);
 	}
-
+	
 	char code[NB_TAB];
 	coder_main(&Main1, code);
+	printf("\n");
 
 	Main Main3 = {0, NULL};
 
